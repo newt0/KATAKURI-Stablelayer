@@ -3,11 +3,11 @@
 ## 概要
 
 KATAKURIは、格闘技のライブストリームに統合されたリアルタイム予測市場である。
-Stablelayerのブランドステーブルコイン `katakuriUSD` を採用し、予測市場の構造的課題である**機会損失問題**（ベットに使用した資金がDeFi利回りを逃す）を解決する。
+Stablelayerのブランドステーブルコイン `FightUSD` を採用し、予測市場の構造的課題である**機会損失問題**（ベットに使用した資金がDeFi利回りを逃す）を解決する。
 
 **アプローチ: ハイブリッド（アプローチC）**
 - **Moveコントラクト**: ブランドステーブルコイン専用のLMSR予測市場
-- **フロントエンド/PTB**: Stablelayer SDKを使ったUSDC⇄katakuriUSD変換を市場操作と合成
+- **フロントエンド/PTB**: Stablelayer SDKを使ったUSDC⇄FightUSD変換を市場操作と合成
 
 ---
 
@@ -48,7 +48,7 @@ Stablelayerのブランドステーブルコイン `katakuriUSD` を採用し、
 ユーザーのUSDC
     │
     ▼ Stablelayer mint
-katakuriUSD (1:1ペグ) ──→ 予測市場にデポジット
+FightUSD (1:1ペグ) ──→ 予測市場にデポジット
     │
     ▼ 裏側で自動的に
 Bucket Protocol Saving Pool ──→ 利回り発生
@@ -222,7 +222,7 @@ public fun get_balance<T>(market: &Market<T>): u64
 
 Suiの**Programmable Transaction Block (PTB)** を活用し、Stablelayer SDK操作と市場操作を**単一トランザクション**に合成する。
 
-### Buy フロー: USDC → katakuriUSD → シェア購入
+### Buy フロー: USDC → FightUSD → シェア購入
 
 ```typescript
 import { StableLayerClient } from "stable-layer-sdk";
@@ -237,10 +237,10 @@ async function buyShares(
 ) {
   const tx = new Transaction();
 
-  // Step 1: Stablelayer mint — USDC → katakuriUSD
-  const katakuriCoin = await stablelayer.buildMintTx({
+  // Step 1: Stablelayer mint — USDC → FightUSD
+  const fightUsdCoin = await stablelayer.buildMintTx({
     tx,
-    stableCoinType: KATAKURI_USD_TYPE,
+    stableCoinType: FIGHT_USD_TYPE,
     usdcCoin: coinWithBalance({
       balance: usdcAmount,
       type: USDC_TYPE,
@@ -249,16 +249,16 @@ async function buyShares(
     autoTransfer: false,  // coinを返してもらう（transferしない）
   });
 
-  // Step 2: KATAKURI Market buy — katakuriUSD でシェア購入
+  // Step 2: KATAKURI Market buy — FightUSD でシェア購入
   tx.moveCall({
     package: KATAKURI_MARKET_PACKAGE,
     module: "market",
     function: "buy",
-    typeArguments: [KATAKURI_USD_TYPE],
+    typeArguments: [FIGHT_USD_TYPE],
     arguments: [
       tx.object(marketId),
       tx.pure.u64(outcomeIndex),
-      katakuriCoin,      // Step 1で得たcoin
+      fightUsdCoin,      // Step 1で得たcoin
       tx.pure.u64(0),    // min_shares_out（スリッページ保護）
     ],
   });
@@ -267,7 +267,7 @@ async function buyShares(
 }
 ```
 
-### Sell フロー: ポジション売却 → katakuriUSD → USDC
+### Sell フロー: ポジション売却 → FightUSD → USDC
 
 ```typescript
 async function sellShares(
@@ -278,19 +278,19 @@ async function sellShares(
 ) {
   const tx = new Transaction();
 
-  // Step 1: Market sell — ポジション消費 → katakuriUSD返却
+  // Step 1: Market sell — ポジション消費 → FightUSD返却
   tx.moveCall({
     package: KATAKURI_MARKET_PACKAGE,
     module: "market",
     function: "sell",
-    typeArguments: [KATAKURI_USD_TYPE],
+    typeArguments: [FIGHT_USD_TYPE],
     arguments: [
       tx.object(marketId),
       tx.object(positionId),
     ],
   });
 
-  // Step 2: Stablelayer burn — katakuriUSD → USDC
+  // Step 2: Stablelayer burn — FightUSD → USDC
   // ※ sell後のcoinはユーザーに返却されるので、
   //    次のPTBで改めてburn操作を行う
   // （sell結果のcoinを直接PTB内で受け取る設計も可能）
@@ -310,19 +310,19 @@ async function redeemWinnings(
 ) {
   const tx = new Transaction();
 
-  // Step 1: Market redeem — 勝利ポジション精算 → katakuriUSD
+  // Step 1: Market redeem — 勝利ポジション精算 → FightUSD
   tx.moveCall({
     package: KATAKURI_MARKET_PACKAGE,
     module: "market",
     function: "redeem",
-    typeArguments: [KATAKURI_USD_TYPE],
+    typeArguments: [FIGHT_USD_TYPE],
     arguments: [
       tx.object(marketId),
       tx.object(positionId),
     ],
   });
 
-  // katakuriUSDをそのまま保持するか、
+  // FightUSDをそのまま保持するか、
   // Stablelayer burnでUSDCに戻すかはユーザー選択
 
   return tx;
@@ -341,7 +341,7 @@ async function claimYield(
   // Stablelayerの利回りを回収
   await stablelayer.buildClaimTx({
     tx,
-    stableCoinType: KATAKURI_USD_TYPE,
+    stableCoinType: FIGHT_USD_TYPE,
     sender,
   });
 
@@ -404,10 +404,10 @@ stable_layer::mint
 
 SuiのPTBは原子的に複数操作を合成できるため、フロントエンドでの統合が最適解である。
 
-### katakuriUSD の準備
+### FightUSD の準備
 
 ブランドステーブルコインの発行にはStablelayerチームとの連携が必要：
-1. `katakuriUSD` の `TreasuryCap` 作成
+1. `FightUSD` の `TreasuryCap` 作成
 2. `StableRegistry` への登録（`stable_layer::new` or `stable_layer::default`）
 3. `StableVaultFarm` への登録（`addEntity`）
 

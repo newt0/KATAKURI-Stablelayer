@@ -1,0 +1,44 @@
+name: Publish Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      versionBumpType:
+        description: Version bump type
+        required: true
+        default: patch
+        type: choice
+        options: [major, minor, patch]
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: write # Required to push version bump commits
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      # Ensure npm 11.5.1 or later is installed
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Configure git user
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Bump & publish package
+        run: npm version ${{ inputs.versionBumpType }} --no-git-tag-version && npm publish --provenance --access public
+      - name: Commit change
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "chore: bump sdk version"

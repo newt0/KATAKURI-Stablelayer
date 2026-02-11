@@ -10,7 +10,7 @@ Katakuri is the first real-time prediction market built for combat sports, integ
 | Track | Stablelayer Track, Sui Track |
 | Category | Prediction Market |
 | Blockchain | Sui (Testnet) |
-| Token | FightUSD (Sui Testnet) |
+| Token | katakuriUSD (Sui Testnet) |
 
 ## Teck Stack
 - Sui Move (the latest Move 2024 syntax)

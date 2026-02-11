@@ -3,11 +3,11 @@
 ## Overview
 
 KATAKURI is a real-time prediction market integrated into combat sports live streams.
-By adopting Stablelayer's branded stablecoin `FightUSD`, it solves the structural **opportunity cost problem** of prediction markets — funds locked in bets miss out on DeFi yields.
+By adopting Stablelayer's branded stablecoin `katakuriUSD`, it solves the structural **opportunity cost problem** of prediction markets — funds locked in bets miss out on DeFi yields.
 
 **Approach: Hybrid (Approach C)**
 - **Move Contract**: LMSR prediction market specialized for branded stablecoins
-- **Frontend / PTB**: Composes USDC-to-FightUSD conversion via Stablelayer SDK with market operations
+- **Frontend / PTB**: Composes USDC-to-katakuriUSD conversion via Stablelayer SDK with market operations
 
 ---
 
@@ -49,7 +49,7 @@ By adopting Stablelayer's branded stablecoin `FightUSD`, it solves the structura
 User's USDC
     │
     ▼ Stablelayer mint
-FightUSD (1:1 peg) ──→ Deposited into prediction market
+katakuriUSD (1:1 peg) ──→ Deposited into prediction market
     │
     ▼ Automatically behind the scenes
 Bucket Protocol Saving Pool ──→ Yield accrues
@@ -223,7 +223,7 @@ Tests use `SUI` as a mock currency (Stablelayer is not available in the test env
 
 Leveraging Sui's **Programmable Transaction Block (PTB)**, Stablelayer SDK operations and market operations are composed into a **single atomic transaction**.
 
-### Buy Flow: USDC → FightUSD → Buy Shares
+### Buy Flow: USDC → katakuriUSD → Buy Shares
 
 ```typescript
 import { StableLayerClient } from "stable-layer-sdk";
@@ -238,10 +238,10 @@ async function buyShares(
 ) {
   const tx = new Transaction();
 
-  // Step 1: Stablelayer mint — USDC → FightUSD
-  const fightUsdCoin = await stablelayer.buildMintTx({
+  // Step 1: Stablelayer mint — USDC → katakuriUSD
+  const katakuriCoin = await stablelayer.buildMintTx({
     tx,
-    stableCoinType: FIGHT_USD_TYPE,
+    stableCoinType: KATAKURI_USD_TYPE,
     usdcCoin: coinWithBalance({
       balance: usdcAmount,
       type: USDC_TYPE,
@@ -250,16 +250,16 @@ async function buyShares(
     autoTransfer: false,  // Return coin instead of transferring
   });
 
-  // Step 2: KATAKURI Market buy — Purchase shares with FightUSD
+  // Step 2: KATAKURI Market buy — Purchase shares with katakuriUSD
   tx.moveCall({
     package: KATAKURI_MARKET_PACKAGE,
     module: "market",
     function: "buy",
-    typeArguments: [FIGHT_USD_TYPE],
+    typeArguments: [KATAKURI_USD_TYPE],
     arguments: [
       tx.object(marketId),
       tx.pure.u64(outcomeIndex),
-      fightUsdCoin,      // Coin from Step 1
+      katakuriCoin,      // Coin from Step 1
       tx.pure.u64(0),    // min_shares_out (slippage protection)
     ],
   });
@@ -268,7 +268,7 @@ async function buyShares(
 }
 ```
 
-### Sell Flow: Sell Position → FightUSD → USDC
+### Sell Flow: Sell Position → katakuriUSD → USDC
 
 ```typescript
 async function sellShares(
@@ -279,19 +279,19 @@ async function sellShares(
 ) {
   const tx = new Transaction();
 
-  // Step 1: Market sell — Consume position → FightUSD returned
+  // Step 1: Market sell — Consume position → katakuriUSD returned
   tx.moveCall({
     package: KATAKURI_MARKET_PACKAGE,
     module: "market",
     function: "sell",
-    typeArguments: [FIGHT_USD_TYPE],
+    typeArguments: [KATAKURI_USD_TYPE],
     arguments: [
       tx.object(marketId),
       tx.object(positionId),
     ],
   });
 
-  // Step 2: Stablelayer burn — FightUSD → USDC
+  // Step 2: Stablelayer burn — katakuriUSD → USDC
   // The coin from sell is transferred to the user,
   // so the burn is performed in a subsequent PTB.
   // (Alternatively, design to capture the coin within the same PTB)
@@ -311,19 +311,19 @@ async function redeemWinnings(
 ) {
   const tx = new Transaction();
 
-  // Step 1: Market redeem — Settle winning position → FightUSD
+  // Step 1: Market redeem — Settle winning position → katakuriUSD
   tx.moveCall({
     package: KATAKURI_MARKET_PACKAGE,
     module: "market",
     function: "redeem",
-    typeArguments: [FIGHT_USD_TYPE],
+    typeArguments: [KATAKURI_USD_TYPE],
     arguments: [
       tx.object(marketId),
       tx.object(positionId),
     ],
   });
 
-  // User chooses whether to hold FightUSD
+  // User chooses whether to hold katakuriUSD
   // or burn it back to USDC via Stablelayer
 
   return tx;
@@ -342,7 +342,7 @@ async function claimYield(
   // Collect accumulated yield from Stablelayer
   await stablelayer.buildClaimTx({
     tx,
-    stableCoinType: FIGHT_USD_TYPE,
+    stableCoinType: KATAKURI_USD_TYPE,
     sender,
   });
 
@@ -405,10 +405,10 @@ Calling these directly from within a Move contract would:
 
 Sui's PTB can atomically compose multiple operations, making frontend-level integration the optimal solution.
 
-### Preparing FightUSD
+### Preparing katakuriUSD
 
 Issuing a branded stablecoin requires coordination with the Stablelayer team:
-1. Create the `TreasuryCap` for `FightUSD`
+1. Create the `TreasuryCap` for `katakuriUSD`
 2. Register with `StableRegistry` (via `stable_layer::new` or `stable_layer::default`)
 3. Register with `StableVaultFarm` (via `addEntity`)
 

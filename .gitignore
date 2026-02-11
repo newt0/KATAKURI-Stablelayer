@@ -1,0 +1,28 @@
+*.env
+user-data.sh
+trust-policy.json
+secrets-policy.json
+
+/move/enclave/build
+/move/*/build
+
+/src/nautilus-server/target
+
+/out
+/target
+
+# Force include .claude/settings.local.json (overrides global gitignore)
+!.claude/settings.local.json
+
+# Serena cache should remain ignored
+.serena/cache/
+node_modules/
+*.log
+.DS_Store
+**/build/
+
+build/*
+**/traces/*
+**/.trace
+**/.coverage*
+

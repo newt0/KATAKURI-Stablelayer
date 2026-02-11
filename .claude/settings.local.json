@@ -23,7 +23,9 @@
       "Bash(python3:*)",
       "Bash(sui client objects:*)",
       "Bash(ADMIN_CAP=0xeb666aa3bcbe5454cefa27da5591604dc644c74a11b950cc3ae1bb366c9377de)",
-      "Bash(POSITION=0x7f8cafb267b88b2065ffcae1bb20ddb78e5692c0f269459ac0de27233a50e348)"
+      "Bash(POSITION=0x7f8cafb267b88b2065ffcae1bb20ddb78e5692c0f269459ac0de27233a50e348)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm build:*)"
     ]
   }
 }

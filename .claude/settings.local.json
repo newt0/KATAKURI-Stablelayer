@@ -20,7 +20,10 @@
       "Bash(FUND_COIN=0xc805a8105f083795a81e19def3f73f648fe3f5e5f05a71acbd49b15f01e1367d)",
       "Bash(MARKET=0xc3cbcbce8a7c7a17c93dd8f3eba888f69bc4106dc819d618e758cb3ae6d16c44)",
       "Bash(PAYMENT=0xa0f9c781f2d2dc4384e72c69fa07bdd5a2548cf04737c8b94802fe6a55e0501f)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(sui client objects:*)",
+      "Bash(ADMIN_CAP=0xeb666aa3bcbe5454cefa27da5591604dc644c74a11b950cc3ae1bb366c9377de)",
+      "Bash(POSITION=0x7f8cafb267b88b2065ffcae1bb20ddb78e5692c0f269459ac0de27233a50e348)"
     ]
   }
 }

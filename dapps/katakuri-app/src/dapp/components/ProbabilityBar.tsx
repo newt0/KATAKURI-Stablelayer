@@ -14,6 +14,15 @@ const COLORS = [
   'bg-purple-500',
 ]
 
+// Export color constants for use in PriceChart
+export const PROBABILITY_COLORS = [
+  '#3b82f6', // blue
+  '#ef4444', // red
+  '#10b981', // green
+  '#eab308', // yellow
+  '#a855f7', // purple
+]
+
 const ProbabilityBar: FC<ProbabilityBarProps> = ({
   outcomes,
   probabilities,

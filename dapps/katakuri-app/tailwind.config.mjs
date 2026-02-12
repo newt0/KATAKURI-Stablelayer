@@ -19,6 +19,17 @@ export default {
         // The color from Radix theme is used.
         // @todo: Move the color to our styles.
         'sds-accent-a11': 'var(--accent-a11)',
+        // Dark theme colors (in-fight-amm style)
+        primary: {
+          DEFAULT: '#c8f028',  // Lime green
+          dark: '#b0d620',
+          light: '#d4f542',
+        },
+        dark: {
+          bg: '#0a0a0a',        // Background
+          card: '#141414',      // Card background
+          border: '#2a2a2a',    // Border
+        },
       },
       fontFamily: {
         inter: 'var(--sds-font-inter)',

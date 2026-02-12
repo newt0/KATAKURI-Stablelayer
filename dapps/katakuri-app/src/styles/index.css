@@ -9,7 +9,13 @@
   --sds-blue: #4da2ff;
   --sds-font-inter: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 
-  color-scheme: light dark;
+  /* Dark theme variables */
+  --dark-bg: #0a0a0a;
+  --dark-card: #141414;
+  --dark-border: #2a2a2a;
+  --primary: #c8f028;
+
+  color-scheme: dark;
 
   font-family: var(--sds-font-inter);
   font-synthesis: none;
@@ -25,6 +31,8 @@ body, #root {
   align-items:center;
   min-width: 100%;
   min-height: 100vh;
+  background-color: var(--dark-bg);
+  color: #ffffff;
 }
 
 /* Custom styles where it's not possible to use Tailwind classes. */

@@ -10,7 +10,7 @@ interface MarketInfoProps {
 
 const MarketInfo: FC<MarketInfoProps> = ({ market }) => {
   return (
-    <Card variant="classic">
+    <Card variant="classic" className="bg-dark-card border border-dark-border">
       <Flex direction="column" gap="2">
         <Text size="2" weight="bold" color="gray">
           Market Info
@@ -36,11 +36,13 @@ const MarketInfo: FC<MarketInfoProps> = ({ market }) => {
         <Flex justify="between">
           <Text size="2">Status:</Text>
           {market.resolved ? (
-            <Badge color="gray">
+            <Badge className="bg-gray-500/20 text-gray-300 border border-gray-500/30">
               Resolved — Winner: {market.outcomes[market.winner ?? 0]}
             </Badge>
           ) : (
-            <Badge color="green">Active</Badge>
+            <Badge className="bg-green-500/20 text-green-400 border border-green-500/30">
+              Active
+            </Badge>
           )}
         </Flex>
       </Flex>

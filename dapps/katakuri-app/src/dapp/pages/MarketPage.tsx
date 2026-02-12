@@ -1,16 +1,17 @@
-import { FC } from 'react'
+import { FC, useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router'
-import { Flex, Text, Button } from '@radix-ui/themes'
+import { Text, Button } from '@radix-ui/themes'
 import { useCurrentAccount } from '@mysten/dapp-kit'
 import Layout from '~~/components/layout/Layout'
 import CustomConnectButton from '~~/components/CustomConnectButton'
 import NetworkSupportChecker from '~~/components/NetworkSupportChecker'
 import useMarket from '../hooks/useMarket'
 import usePositions from '../hooks/usePositions'
-import ProbabilityBar from '../components/ProbabilityBar'
+import MarketOverview from '../components/MarketOverview'
 import BuySharesForm from '../components/BuySharesForm'
 import PositionsList from '../components/PositionsList'
 import MarketInfo from '../components/MarketInfo'
+import { PROBABILITY_COLORS } from '../components/ProbabilityBar'
 
 const MarketPage: FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -19,6 +20,31 @@ const MarketPage: FC = () => {
   const { data: market, isLoading } = useMarket(id)
   const { data: positions } = usePositions(id)
 
+  // Chart data state management
+  const [chartData, setChartData] = useState<Record<number, { time: number; price: number }[]>>({})
+
+  useEffect(() => {
+    if (!market) return
+
+    setChartData(prev => {
+      const newData = { ...prev }
+      market.outcomes.forEach((_, i) => {
+        // Initialize with past 20 data points if first time
+        const currentData = prev[i] || Array.from({ length: 20 }, (_, j) => ({
+          time: Date.now() - (20 - j) * 60000,
+          price: market.probabilities[i] || 0
+        }))
+
+        // Add new data point, remove oldest
+        newData[i] = [
+          ...currentData.slice(1),
+          { time: Date.now(), price: market.probabilities[i] || 0 }
+        ]
+      })
+      return newData
+    })
+  }, [market?.probabilities])
+
   return (
     <Layout>
       <NetworkSupportChecker />
@@ -26,12 +52,12 @@ const MarketPage: FC = () => {
         {!currentAccount ? (
           <CustomConnectButton />
         ) : (
-          <div className="w-full max-w-lg space-y-4">
+          <div className="w-full max-w-2xl space-y-0">
             <Button
               variant="ghost"
               size="1"
               onClick={() => navigate('/')}
-              className="cursor-pointer"
+              className="cursor-pointer mb-4"
             >
               &larr; Back to Markets
             </Button>
@@ -43,24 +69,33 @@ const MarketPage: FC = () => {
             )}
 
             {market && (
-              <Flex direction="column" gap="4">
-                <Text size="5" weight="bold">
-                  {market.question}
-                </Text>
-
-                <ProbabilityBar
+              <>
+                <MarketOverview
+                  totalPool={market.balance}
                   outcomes={market.outcomes}
                   probabilities={market.probabilities}
+                  colors={PROBABILITY_COLORS}
                 />
 
-                <BuySharesForm market={market} />
+                <div className="h-px bg-dark-border my-0"></div>
+
+                <BuySharesForm
+                  market={market}
+                  positions={positions}
+                  chartData={chartData}
+                />
+
+                <div className="h-px bg-dark-border my-0"></div>
 
                 {positions && positions.length > 0 && (
-                  <PositionsList market={market} positions={positions} />
+                  <>
+                    <PositionsList market={market} positions={positions} />
+                    <div className="h-px bg-dark-border my-0"></div>
+                  </>
                 )}
 
                 <MarketInfo market={market} />
-              </Flex>
+              </>
             )}
 
             {!isLoading && !market && (

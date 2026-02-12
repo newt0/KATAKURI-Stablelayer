@@ -1,61 +1,49 @@
 "use client"
 
-import { useKatakuriStore } from "@/store/katakuri"
-import { MatchCard } from "@/components/match/match-card"
+import useOnChainMarkets from "@/hooks/sui/use-on-chain-markets"
+import { OnChainMarketListCard } from "@/components/market/on-chain-market-list-card"
 
 export default function HomePage() {
-  const matches = useKatakuriStore((s) => s.matches)
-
-  const liveMatches = matches.filter((m) => m.status === "live")
-  const upcomingMatches = matches.filter((m) => m.status === "upcoming")
-  const endedMatches = matches.filter((m) => m.status === "ended")
+  const { data: marketEvents, isLoading, error } = useOnChainMarkets()
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Matches</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Markets</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Real-time prediction markets for live combat sports
+          Real-time prediction markets on Sui Testnet
         </p>
       </div>
 
-      {liveMatches.length > 0 && (
+      {isLoading && (
+        <div className="py-12 text-center">
+          <p className="text-sm text-muted-foreground">Loading markets...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="py-12 text-center">
+          <p className="text-sm text-destructive">Failed to load markets. Please try again.</p>
+        </div>
+      )}
+
+      {marketEvents && marketEvents.length > 0 && (
         <section>
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Live Now
+            All Markets
           </h2>
           <div className="space-y-3">
-            {liveMatches.map((match) => (
-              <MatchCard key={match.id} match={match} />
+            {marketEvents.map((event) => (
+              <OnChainMarketListCard key={event.marketId} marketEvent={event} />
             ))}
           </div>
         </section>
       )}
 
-      {upcomingMatches.length > 0 && (
-        <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Upcoming
-          </h2>
-          <div className="space-y-3">
-            {upcomingMatches.map((match) => (
-              <MatchCard key={match.id} match={match} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {endedMatches.length > 0 && (
-        <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Ended
-          </h2>
-          <div className="space-y-3">
-            {endedMatches.map((match) => (
-              <MatchCard key={match.id} match={match} />
-            ))}
-          </div>
-        </section>
+      {marketEvents && marketEvents.length === 0 && (
+        <div className="py-12 text-center">
+          <p className="text-sm text-muted-foreground">No markets found. Create one from the Admin page!</p>
+        </div>
       )}
     </div>
   )

@@ -2,19 +2,17 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useKatakuriStore } from "@/store/katakuri"
-import { formatUsd } from "@/lib/format"
 import { cn } from "@/lib/utils"
+import { ConnectButton } from "@mysten/dapp-kit"
 
 const navItems = [
-  { href: "/", label: "Matches" },
+  { href: "/", label: "Markets" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/admin", label: "Admin" },
 ]
 
 export function Header() {
   const pathname = usePathname()
-  const balances = useKatakuriStore((s) => s.balances)
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background">
@@ -41,19 +39,8 @@ export function Header() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">USDC</span>
-            <span className="font-semibold tabular-nums text-foreground">
-              ${formatUsd(balances.usdc)}
-            </span>
-          </div>
-          <div className="hidden items-center gap-2 sm:flex">
-            <span className="text-muted-foreground">kUSD</span>
-            <span className="font-semibold tabular-nums text-foreground">
-              ${formatUsd(balances.katakuriUsd)}
-            </span>
-          </div>
+        <div className="flex items-center gap-4">
+          <ConnectButton />
         </div>
       </div>
 

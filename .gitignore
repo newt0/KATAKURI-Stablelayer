@@ -26,3 +26,4 @@ build/*
 **/.trace
 **/.coverage*
 
+/docs/samples/*
